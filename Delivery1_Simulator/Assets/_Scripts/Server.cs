@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Networking;
@@ -32,12 +33,12 @@ public class Server : MonoBehaviour
         form.AddField("playerName", playerName);
         form.AddField("country", country);
         form.AddField("age", age);
-        form.AddField("gender", gender.ToString());
+        form.AddField("gender", gender.ToString(CultureInfo.InvariantCulture));
         form.AddField("date", joinDate.ToString());
-        Upload(form);
+        StartCoroutine(Upload(form));
 
         //Exaple id
-        CallbackEvents.OnAddPlayerCallback.Invoke(1);
+       // CallbackEvents.OnAddPlayerCallback.Invoke(1);
     }
 
     private void OnSessionReceived(DateTime beginSessionDate, uint playerId)
@@ -48,10 +49,10 @@ public class Server : MonoBehaviour
         WWWForm form = new WWWForm();
         form.AddField("playerId", playerId.ToString());
         form.AddField("beginSessionDate", beginSessionDate.ToString());
-        Upload(form);
+        StartCoroutine(Upload(form));
 
         //Exaple id
-        CallbackEvents.OnNewSessionCallback.Invoke(1);
+        //CallbackEvents.OnNewSessionCallback.Invoke(1);
     }
 
     private void OnSessionEnd(DateTime endSessionDate, uint sessionId)
@@ -62,10 +63,10 @@ public class Server : MonoBehaviour
         WWWForm form = new WWWForm();
         form.AddField("sessionId", sessionId.ToString());
         form.AddField("endSessionDate", endSessionDate.ToString());
-        Upload(form);
+        StartCoroutine(Upload(form));
 
         //Exaple id
-        CallbackEvents.OnEndSessionCallback.Invoke(1);
+        //CallbackEvents.OnEndSessionCallback.Invoke(1);
     }
 
     private void OnBuyReceived(int itemId, DateTime buyDate, uint sessionId)
@@ -77,15 +78,15 @@ public class Server : MonoBehaviour
         form.AddField("sessionId", sessionId.ToString());
         form.AddField("itemId", itemId.ToString());
         form.AddField("buyDate", buyDate.ToString());
-        Upload(form);
+        StartCoroutine(Upload(form));
 
         //Exaple id
-        CallbackEvents.OnItemBuyCallback.Invoke(1);
+        //CallbackEvents.OnItemBuyCallback.Invoke(1);
     }
 
     IEnumerator Upload(WWWForm form)
     {
-        using (UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~franciscofp4/dataHandler", form))
+        using (UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~franciscofp4/dataHandlerSimplified.php", form))
         {
             yield return www.SendWebRequest();
 

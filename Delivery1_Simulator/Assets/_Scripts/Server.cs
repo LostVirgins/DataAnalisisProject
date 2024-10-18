@@ -34,7 +34,7 @@ public class Server : MonoBehaviour
         form.AddField("country", country);
         form.AddField("age", age);
         form.AddField("gender", gender.ToString(CultureInfo.InvariantCulture));
-        form.AddField("date", joinDate.ToString());
+        form.AddField("joinDate", joinDate.ToString());
         StartCoroutine(Upload(form));
 
         //Exaple id

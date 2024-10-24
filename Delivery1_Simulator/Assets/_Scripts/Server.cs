@@ -26,65 +26,49 @@ public class Server : MonoBehaviour
 
     private void OnPlayerReceived(string playerName, string country, int age, float gender, DateTime joinDate)
     {
-        //Example recieve
-        //Debug.Log($"[Server] Received New Player - Name: {playerName}, Country: {country}, Age: {age}, Gender: {gender}, Date: {joinDate}");
-
         WWWForm form = new WWWForm();
+        form.AddField("table", "UserInfo");
         form.AddField("playerName", playerName);
         form.AddField("country", country);
         form.AddField("age", age);
         form.AddField("gender", gender.ToString(CultureInfo.InvariantCulture));
-        form.AddField("joinDate", joinDate.ToString());
-        StartCoroutine(Upload(form));
-
-        //Exaple id
-       // CallbackEvents.OnAddPlayerCallback.Invoke(1);
+        string formattedDate = joinDate.ToString("yyyy-MM-dd HH:mm:ss");
+        form.AddField("joinDate", formattedDate);
+        StartCoroutine(Upload(form, CallbackEvents.OnAddPlayerCallback));
     }
 
     private void OnSessionReceived(DateTime beginSessionDate, uint playerId)
     {
-        //Example recieve
-        //Debug.Log($"[Server] Received New Session - PlayerID: {playerId}, Date: {beginSessionDate}");
-
         WWWForm form = new WWWForm();
+        form.AddField("table", "NewSessions");
         form.AddField("playerId", playerId.ToString());
-        form.AddField("beginSessionDate", beginSessionDate.ToString());
-        StartCoroutine(Upload(form));
-
-        //Exaple id
-        //CallbackEvents.OnNewSessionCallback.Invoke(1);
+        string formattedDate = beginSessionDate.ToString("yyyy-MM-dd HH:mm:ss");
+        form.AddField("beginSessionDate", formattedDate);
+        StartCoroutine(Upload(form, CallbackEvents.OnNewSessionCallback));
     }
 
     private void OnSessionEnd(DateTime endSessionDate, uint sessionId)
     {
-        //Example recieve
-        //Debug.Log($"[Server] Received New Session - Date: {endSessionDate}");
-
         WWWForm form = new WWWForm();
+        form.AddField("table", "NewSessions");
         form.AddField("sessionId", sessionId.ToString());
-        form.AddField("endSessionDate", endSessionDate.ToString());
-        StartCoroutine(Upload(form));
-
-        //Exaple id
-        //CallbackEvents.OnEndSessionCallback.Invoke(1);
+        string formattedDate = endSessionDate.ToString("yyyy-MM-dd HH:mm:ss");
+        form.AddField("endSessionDate", formattedDate);
+        StartCoroutine(Upload(form, CallbackEvents.OnEndSessionCallback));
     }
 
     private void OnBuyReceived(int itemId, DateTime buyDate, uint sessionId)
     {
-        //Example recieve
-        //Debug.Log($"[Server] Received New Session - SessionID: {sessionId}, ItemID: {itemId}, Date: {buyDate}");
-
         WWWForm form = new WWWForm();
+        form.AddField("table", "ItemSales");
         form.AddField("sessionId", sessionId.ToString());
         form.AddField("itemId", itemId.ToString());
-        form.AddField("buyDate", buyDate.ToString());
-        StartCoroutine(Upload(form));
-
-        //Exaple id
-        //CallbackEvents.OnItemBuyCallback.Invoke(1);
+        string formattedDate = buyDate.ToString("yyyy-MM-dd HH:mm:ss");
+        form.AddField("buyDate", formattedDate);
+        StartCoroutine(Upload(form, CallbackEvents.OnItemBuyCallback));
     }
 
-    IEnumerator Upload(WWWForm form)
+    IEnumerator Upload(WWWForm form, Action<uint> callback)
     {
         using (UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~franciscofp4/dataHandlerSimplified.php", form))
         {
@@ -97,8 +81,18 @@ public class Server : MonoBehaviour
             else
             {
                 Debug.Log("Form upload complete!");
-                Debug.Log(www.downloadHandler.text);
+                string response = www.downloadHandler.text;
+                Debug.Log("Server response: " + response);
 
+                int id;
+                if (int.TryParse(response, out id))
+                {
+                    callback.Invoke((uint)id);
+                }
+                else
+                {
+                    Debug.LogError("Error: Couldn't parse the server response.");
+                }
             }
         }
     }

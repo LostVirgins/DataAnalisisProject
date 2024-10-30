@@ -20,6 +20,7 @@ if($conn->connect_error) {
 }
 
 $table = $_POST["table"];
+$response = "";
 
 switch ($table) {
     case "UserInfo":
@@ -32,6 +33,14 @@ switch ($table) {
 
         $sql = "INSERT INTO UserInfo (`Name`, Age, Gender, Country, JoinDate)
                     VALUES ('$name', '$age', '$gender', '$country', '$joindate')";
+
+        if ($conn->query($sql) === TRUE) {
+            $last_id = $conn->insert_id;
+            $response = $last_id;
+        } else {
+            die("Error: " . $sql . "<br>" . $conn->error);
+        }
+
         break;
 
     case "NewSessions":
@@ -42,15 +51,43 @@ switch ($table) {
 
             $sql = "INSERT INTO NewSessions (`BeginDate`, `PlayerID`)
                     VALUES ('$beginDate', '$playerID')";
+
+            if ($conn->query($sql) === TRUE) {
+                $last_id = $conn->insert_id;
+                $response = $last_id;
+            } else {
+                die("Error: " . $sql . "<br>" . $conn->error);
+            }
+
         } elseif (isset($_POST["endSessionDate"]) && isset($_POST["sessionId"])) {
             // Update session with end date
             $endDate = $_POST["endSessionDate"];
             $sessionID = $_POST["sessionId"];
 
             $sql = "UPDATE NewSessions SET `EndDate`='$endDate' WHERE `SessionID`='$sessionID'";
+
+            if ($conn->query($sql) === TRUE) {
+                $sql2 = "SELECT PlayerID FROM NewSessions WHERE `SessionID`='$sessionID'";
+                $result = $conn->query($sql2);
+
+                if ($result && $result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()){
+                        $response = $row["PlayerID"];
+                    }
+                } else {
+                    $response = "Error: Failed to retrieve PlayerID.";
+                    echo $response;
+                    $conn->close();
+                    exit;
+                }
+            } else {
+                die("Error: " . $sql . "<br>" . $conn->error);
+            }
+
         } else {
             die("Error: Missing data for session handling");
         }
+
         break;
 
     case "ItemSales":
@@ -61,19 +98,21 @@ switch ($table) {
 
         $sql = "INSERT INTO ItemSales (`ItemID`, `DateTime`, `SessionID`)
                 VALUES ('$itemID', '$buyDate', '$sessionID')";
+
+        if ($conn->query($sql) === TRUE) {
+            $response = $sessionID;
+        } else {
+            die("Error: " . $sql . "<br>" . $conn->error);
+        }
+
         break;
     
     default:
         die("Error: Invalid table name");
 }
 
-if($conn->query($sql) === TRUE){
-    $last_id = $conn->insert_id;
-    echo $last_id;
-}
-else{
-    die("Error: " . $sql . "<br>" . $conn->error);
-}
+//Return to Unity
+echo $response;
 
 $conn->close();
 ?>

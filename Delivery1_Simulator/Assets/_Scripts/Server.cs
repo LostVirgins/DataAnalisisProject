@@ -28,8 +28,8 @@ public class Server : MonoBehaviour
     {
         WWWForm form = new WWWForm();
         form.AddField("table", "UserInfo");
-        form.AddField("playerName", playerName);
-        form.AddField("country", country);
+        form.AddField("playerName", StringNormalize(playerName));
+        form.AddField("country", StringNormalize(country));
         form.AddField("age", age);
         form.AddField("gender", gender.ToString(CultureInfo.InvariantCulture));
         string formattedDate = joinDate.ToString("yyyy-MM-dd HH:mm:ss");
@@ -95,5 +95,13 @@ public class Server : MonoBehaviour
                 }
             }
         }
+    }
+
+    public static string StringNormalize(string input)
+    {
+        string normalized = input.Trim();
+        normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"[^a-zA-Z0-9\s]", "");
+
+        return normalized;
     }
 }
